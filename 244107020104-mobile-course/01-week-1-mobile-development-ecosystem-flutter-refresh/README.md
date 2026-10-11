@@ -7,7 +7,7 @@
 ---
 
 ## Hasil Praktikum
-![Hasil Praktikum](screenshot/1.jpg)
+![Hasil Praktikum](screenshots/1.jpg)
 
 ## Kendala dan Solusi
 * **Kendala Memori Build:** Mengalami kegagalan daemon disappeared saat kompilasi Gradle pertama karena alokasi memori default mencoba meminta 8 GB RAM pada sistem dengan kapasitas fisik 4 GB.
