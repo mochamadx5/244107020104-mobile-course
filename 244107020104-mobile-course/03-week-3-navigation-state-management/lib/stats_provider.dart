@@ -13,10 +13,19 @@ class TaskStats {
   });
 }
 
-// State untuk memicu simulasi error saat pengujian
-final simulateErrorProvider = StateProvider<bool>((ref) => false);
+// Notifier sederhana pengganti StateProvider
+class SimulateErrorNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
 
-// FutureProvider yang mengkalkulasi statistik todo secara asinkron
+  void toggle() => state = !state;
+  void reset() => state = false;
+}
+
+final simulateErrorProvider =
+    NotifierProvider<SimulateErrorNotifier, bool>(SimulateErrorNotifier.new);
+
+// FutureProvider untuk memuat data statistik
 final statsFutureProvider = FutureProvider.autoDispose<TaskStats>((ref) async {
   final todos = ref.watch(todoListProvider);
   final isError = ref.watch(simulateErrorProvider);
