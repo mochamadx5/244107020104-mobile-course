@@ -14,7 +14,6 @@ class StatsPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Statistik Tugas (AsyncValue)'),
         actions: [
-          // Switch untuk simulasi kondisi error vs normal
           IconButton(
             tooltip: isErrorMode ? 'Mode Normal' : 'Simulasi Error',
             icon: Icon(
@@ -22,7 +21,7 @@ class StatsPage extends ConsumerWidget {
               color: isErrorMode ? Colors.red : null,
             ),
             onPressed: () {
-              ref.read(simulateErrorProvider.notifier).state = !isErrorMode;
+              ref.read(simulateErrorProvider.notifier).toggle();
               ref.invalidate(statsFutureProvider);
             },
           ),
@@ -55,8 +54,7 @@ class StatsPage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () {
-                    // Nonaktifkan mode simulasi error lalu refresh provider
-                    ref.read(simulateErrorProvider.notifier).state = false;
+                    ref.read(simulateErrorProvider.notifier).reset();
                     ref.invalidate(statsFutureProvider);
                   },
                   icon: const Icon(Icons.refresh),
