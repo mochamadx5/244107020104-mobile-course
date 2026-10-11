@@ -1,121 +1,243 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+// Konstanta breakpoint layar lebar sesuai refactoring challenge
+const double kWideBreakpoint = 700.0;
+
+void main() => runApp(const DashboardApp());
+
+class DashboardApp extends StatefulWidget {
+  const DashboardApp({super.key});
+
+  @override
+  State<DashboardApp> createState() => _DashboardAppState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _DashboardAppState extends State<DashboardApp> {
+  bool _isDark = false;
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'Academic Overview',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        brightness: Brightness.light,
+        colorSchemeSeed: Colors.indigo,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorSchemeSeed: Colors.indigo,
+      ),
+      themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
+      home: DashboardPage(
+        isDark: _isDark,
+        onDarkChanged: (value) => setState(() => _isDark = value),
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class DashboardPage extends StatelessWidget {
+  final bool isDark;
+  final ValueChanged<bool> onDarkChanged;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  const DashboardPage({
+    super.key,
+    required this.isDark,
+    required this.onDarkChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+        title: const Text('Academic Overview'),
+        actions: [
+          Semantics(
+            label: 'Sakelar ganti tema terang atau gelap',
+            child: Row(
+              children: [
+                Icon(
+                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                CupertinoSwitch(
+                  value: isDark,
+                  onChanged: onDarkChanged,
+                ),
+                const SizedBox(width: 16),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= kWideBreakpoint;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Profil Mahasiswa
+                _buildProfileHeader(context),
+                const SizedBox(height: 20),
+
+                // Grid Kartu Informasi Responsif
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: isWide ? 2 : 1,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: isWide ? 3.0 : 2.5,
+                  children: const [
+                    InfoCard(
+                      title: 'Assignments Completed',
+                      value: '8 / 10',
+                      icon: Icons.assignment_turned_in_rounded,
+                      semanticLabel: 'Status tugas: 8 dari 10 selesai',
+                    ),
+                    InfoCard(
+                      title: 'Attendance Rate',
+                      value: '95%',
+                      icon: Icons.calendar_today_rounded,
+                      semanticLabel: 'Tingkat kehadiran: 95 persen',
+                    ),
+                    InfoCard(
+                      title: 'Current GPA / IPK',
+                      value: '3.85',
+                      icon: Icons.school_rounded,
+                      semanticLabel: 'Indeks prestasi kumulatif saat ini: 3.85',
+                    ),
+                    InfoCard(
+                      title: 'Current Week',
+                      value: 'Week 02',
+                      icon: Icons.access_time_filled_rounded,
+                      semanticLabel: 'Minggu perkuliahan saat ini: Minggu kedua',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: theme.colorScheme.primary,
+            child: Icon(
+              Icons.person_rounded,
+              size: 32,
+              color: theme.colorScheme.onPrimary,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mochamad Reza Firdaus',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'NIM: 244107020104 • D4 TI',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget Reusable InfoCard sesuai Refactoring Challenge
+class InfoCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final String semanticLabel;
+
+  const InfoCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.semanticLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Semantics(
+      label: semanticLabel,
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: theme.colorScheme.onSecondaryContainer,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                value,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
