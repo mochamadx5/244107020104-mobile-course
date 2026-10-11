@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'pages/detail_page.dart';
-import 'pages/home_page.dart';
+import 'pages/todo_page.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  // ProviderScope membungkus seluruh aplikasi agar state Riverpod bisa diakses di mana saja
+  runApp(const ProviderScope(child: MyApp()));
+}
 
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const HomePage(),
+      builder: (context, state) => const TodoPage(),
       routes: [
         GoRoute(
           path: 'detail/:id',
@@ -29,7 +33,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Week 3 - Navigation',
+      title: 'Week 3 - Navigation & State Management',
       routerConfig: _router,
       theme: ThemeData(
         colorSchemeSeed: Colors.indigo,
