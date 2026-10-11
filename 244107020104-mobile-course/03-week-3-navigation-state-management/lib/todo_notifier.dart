@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'todo.dart';
 
-class TodoNotifier extends StateNotifier<List<Todo>> {
-  TodoNotifier()
-      : super(const [
-          Todo(id: '1', title: 'Belajar GoRouter dasar', completed: true),
-          Todo(id: '2', title: 'Pahami konsep State Management'),
-          Todo(id: '3', title: 'Implementasi Riverpod Notifier'),
-        ]);
+class TodoNotifier extends Notifier<List<Todo>> {
+  @override
+  List<Todo> build() {
+    return const [
+      Todo(id: '1', title: 'Belajar GoRouter dasar', completed: true),
+      Todo(id: '2', title: 'Pahami konsep State Management'),
+      Todo(id: '3', title: 'Implementasi Riverpod Notifier'),
+    ];
+  }
 
   void add(String title) {
     if (title.trim().isEmpty) return;
@@ -33,8 +35,6 @@ class TodoNotifier extends StateNotifier<List<Todo>> {
   }
 }
 
-// Provider global untuk daftar Todo
+// Provider global menggunakan NotifierProvider
 final todoListProvider =
-    StateNotifierProvider<TodoNotifier, List<Todo>>((ref) {
-  return TodoNotifier();
-});
+    NotifierProvider<TodoNotifier, List<Todo>>(TodoNotifier.new);
