@@ -15,7 +15,7 @@ class PostRepository {
   }
   Future<List<Post>> fetchPostsPage({
   required int page,
-  int limit = 10,}
+  int limit = 10,
 }) async {
   final response = await _dio.get<List>(
     '/posts',
