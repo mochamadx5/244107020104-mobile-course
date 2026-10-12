@@ -25,7 +25,18 @@ class NotesPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Offline Notes'),
-        actions: [
+       actions: [
+          // Tombol buka halaman Pengaturan Tema
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Pengaturan',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              );
+            },
+          ),
           // Badge indikator dirty
           Center(
             child: dirtyAsync.when(
