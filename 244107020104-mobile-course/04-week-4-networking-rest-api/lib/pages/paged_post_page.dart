@@ -7,12 +7,10 @@ class PagedPostPage extends ConsumerStatefulWidget {
   const PagedPostPage({super.key});
 
   @override
-  ConsumerState<PagedPostPage> createState() =>
-      _PagedPostPageState();
+  ConsumerState<PagedPostPage> createState() => _PagedPostPageState();
 }
 
-class _PagedPostPageState
-    extends ConsumerState<PagedPostPage> {
+class _PagedPostPageState extends ConsumerState<PagedPostPage> {
   final _controller = ScrollController();
 
   @override
@@ -35,6 +33,7 @@ class _PagedPostPageState
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(pagedPostsProvider);
+
     if (state.error != null && state.items.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Posts Paged')),
@@ -55,6 +54,7 @@ class _PagedPostPageState
         ),
       );
     }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Posts Paged')),
       body: ListView.builder(
@@ -65,8 +65,19 @@ class _PagedPostPageState
             if (!state.hasMore) {
               return const Padding(
                 padding: EdgeInsets.all(16),
-                child:
-                    Center(child: Text('Semua data termuat.')),
+                child: Center(child: Text('Semua data termuat.')),
+              );
+            }
+            if (state.error != null) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: TextButton(
+                    onPressed: () =>
+                        ref.read(pagedPostsProvider.notifier).loadNextPage(),
+                    child: const Text('Gagal memuat. Ketuk untuk coba lagi'),
+                  ),
+                ),
               );
             }
             return const Padding(
@@ -74,12 +85,20 @@ class _PagedPostPageState
               child: Center(child: CircularProgressIndicator()),
             );
           }
+
           final post = state.items[index];
           return ListTile(
-            leading: CircleAvatar(
-                child: Text(post.id.toString())),
-            title: Text(post.title,
-                maxLines: 1, overflow: TextOverflow.ellipsis),
+            leading: CircleAvatar(child: Text(post.id.toString())),
+            title: Text(
+              post.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              post.body,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           );
         },
       ),
