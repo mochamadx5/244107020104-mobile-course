@@ -33,8 +33,9 @@ class NotesPage extends ConsumerWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
-              );
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(),
+                ),
             },
           ),
           // Badge indikator dirty
