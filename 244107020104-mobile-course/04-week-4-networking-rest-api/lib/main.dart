@@ -11,6 +11,6 @@ class MyApp extends StatelessWidget {
         title: 'Week 4 - REST API',
         theme: ThemeData(
             colorSchemeSeed: Colors.indigo, useMaterial3: true),
-        home: const PostListPage(),
+        home: const PagedPostPage(),
       );
 }
