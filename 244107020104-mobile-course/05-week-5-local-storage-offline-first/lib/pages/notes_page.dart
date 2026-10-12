@@ -36,6 +36,7 @@ class NotesPage extends ConsumerWidget {
                 MaterialPageRoute(
                   builder: (_) => SettingsPage(),
                 ),
+              )
             },
           ),
           // Badge indikator dirty
