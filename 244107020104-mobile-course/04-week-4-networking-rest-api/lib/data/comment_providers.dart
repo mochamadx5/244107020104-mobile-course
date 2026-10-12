@@ -40,21 +40,14 @@ final commentsProvider =
 
 // Fungsi untuk menerjemahkan objek error (khususnya DioException) menjadi pesan ramah pengguna
 String commentFriendlyErrorMessage(Object error) {
-  // Memeriksa apakah error berasal dari Dio
   if (error is DioException) {
-    // Memetakan berdasarkan tipe DioExceptionType
     switch (error.type) {
-      // Menangani kondisi ketika koneksi, pengiriman, atau penerimaan data melewati batas 10 detik
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return 'Koneksi timeout (lebih dari 10 detik). Periksa jaringan Anda lalu coba lagi.';
-
-      // Menangani kondisi ketika perangkat tidak terhubung ke internet / gagal resolusi DNS
+        return 'Koneksi timeout (10 detik). Periksa jaringan Anda lalu coba lagi.';
       case DioExceptionType.connectionError:
         return 'Tidak ada koneksi internet. Periksa WiFi atau data seluler Anda.';
-
-      // Menangani kondisi ketika server merespons dengan status code di luar 2xx (misal 404 atau 500)
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         if (statusCode == 404) {
@@ -64,14 +57,11 @@ String commentFriendlyErrorMessage(Object error) {
           return 'Terjadi gangguan pada server (Error 500). Coba beberapa saat lagi.';
         }
         return 'Server mengembalikan error ($statusCode).';
-
-      // Menangani kondisi ketika request dibatalkan secara manual
       case DioExceptionType.cancel:
-        return 'Permintaan ke server dibatalkan.';
-
-      // Menangani masalah sertifikat SSL atau error tak terduga lainnya
+        return 'Permintaan dibatalkan.';
       case DioExceptionType.badCertificate:
       case DioExceptionType.unknown:
+      default: // Menangani transformTimeout atau varian tipe lainnya
         return 'Terjadi kesalahan jaringan. Silakan coba lagi.';
     }
   }
