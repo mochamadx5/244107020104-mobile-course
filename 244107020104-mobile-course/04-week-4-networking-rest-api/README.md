@@ -1,17 +1,22 @@
 # week4_api
 
-A new Flutter project.
+## AI Verification Checklist
 
-## Getting Started
+1. **Apakah UI memanggil Dio secara langsung (dilarang) atau lewat repository?**
+   - Lewat repository (`PostRepository` / `CommentRepository`). UI (`PostListPage` dan `PagedPostPage`) hanya memantau state melalui provider Riverpod.
 
-This project is a starting point for a Flutter application.
+2. **Apakah `fromJson` aman null, atau masih memakai cast langsung yang bisa crash?**
+   - Aman null. Menggunakan *nullable cast* (`as num?`, `as String?`) dengan nilai fallback (`?? 0`, `?? ''`) sehingga tidak crash saat ada field yang `null` atau hilang.
 
-A few resources to get you started if this is your first Flutter project:
+3. **Apakah semua tipe `DioExceptionType` (timeout, connectionError, badResponse) dipetakan ke pesan pengguna?**
+   - Sudah dipetakan seluruhnya di fungsi `friendlyErrorMessage()` (mencakup `connectionTimeout`, `sendTimeout`, `receiveTimeout`, `connectionError`, `badResponse` status 404/500, `cancel`, dan `unknown`).
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+4. **Apakah `baseUrl`/timeout terpusat di satu client, bukan tersebar di tiap method?**
+   - Terpusat di `lib/data/api_client.dart` melalui fungsi `createDio()` (`baseUrl: 'https://jsonplaceholder.typicode.com'`, `connectTimeout` & `receiveTimeout` 10 detik) dan dipakai bersama lewat `dioProvider`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+5. **Apakah test AI benar-benar menguji kasus field hilang, atau hanya happy path? Tambahkan minimal 1 edge case sendiri.**
+   - Sudah menguji kasus *field* hilang (*missing fields*), ditambah 1 *edge case* mandiri berupa Map JSON kosong `{}` dan seluruh field bernilai `null`.
+
+6. **Hasil `flutter analyze` dan `flutter test`:**
+   - `flutter analyze`: Lolos tanpa warning (`No issues found!`).
+   - `flutter test`: Lolos seluruh pengujian (`All tests passed!`).
