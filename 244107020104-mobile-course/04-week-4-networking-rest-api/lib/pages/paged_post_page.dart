@@ -204,7 +204,7 @@ class _CommentsBottomSheet extends ConsumerWidget {
                     return ListView.separated(
                       controller: scrollController,
                       itemCount: comments.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final c = comments[index];
                         return ListTile(
