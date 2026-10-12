@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/local/note.dart';
 import '../data/repositories/note_repository.dart';
+import 'settings_page.dart';
 
 final noteRepositoryProvider = Provider((ref) => NoteRepository());
 
