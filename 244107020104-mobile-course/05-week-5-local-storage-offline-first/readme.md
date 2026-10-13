@@ -28,7 +28,7 @@ Aplikasi catatan berbasis Flutter yang menerapkan arsitektur *offline-first*, pe
 
 | Kondisi Awal (Kosong) | Sebelum Sinkronisasi (Offline/Dirty) | Sesudah Sinkronisasi (Synced) | Tampilan Final + Settings |
 | :---: | :---: | :---: | :---: |
-| ![Empty State](screenshots/01_empty_state.png) | ![Dirty State](screenshots/02_dirty_badge_before_sync.png) | ![Synced State](screenshots/03_dirty_badge_after_sync.png) | ![Final Bar](screenshots/04_final_app_bar_with_settings.png) |
+| ![Empty State](screenshots/01_empty_state.png) | ![Dirty State](screenshots/02_dirty_badge_before_sync.png) | ![Synced State](screenshots/03_dirty_badge_after_sync.png) | ![Final Dark Mode](screenshots/04_dark_mode.png) |
 
 ---
 
