@@ -1,9 +1,9 @@
-import '../data/sync.dart';
-import '../widgets/note_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/local/note.dart';
 import '../data/repositories/note_repository.dart';
+import '../data/sync.dart';
+import '../widgets/note_tile.dart';
 import 'settings_page.dart';
 
 final noteRepositoryProvider = Provider((ref) => NoteRepository());
@@ -28,7 +28,7 @@ class NotesPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Offline Notes'),
         actions: [
-          // Tombol buka halaman Pengaturan Tema
+          // 1. Tombol Buka Pengaturan Tema
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Pengaturan',
@@ -41,7 +41,7 @@ class NotesPage extends ConsumerWidget {
               );
             },
           ),
-          // Badge indikator dirty
+          // 2. Badge Indikator Dirty
           Center(
             child: dirtyAsync.when(
               data: (count) => Container(
@@ -60,7 +60,7 @@ class NotesPage extends ConsumerWidget {
               error: (_, __) => const SizedBox.shrink(),
             ),
           ),
-          // Tombol Sinkronisasi
+          // 3. Tombol Sinkronisasi (Memanggil fungsi dari sync.dart)
           IconButton(
             icon: const Icon(Icons.sync),
             tooltip: 'Sync Notes',
@@ -68,7 +68,10 @@ class NotesPage extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Menyinkronkan data...')),
               );
-              final count = await ref.read(noteRepositoryProvider).syncNotes();
+              
+              final repo = ref.read(noteRepositoryProvider);
+              final count = await syncNotes(repo);
+              
               ref.invalidate(notesProvider);
               ref.invalidate(dirtyCountProvider);
               if (context.mounted) {
@@ -91,15 +94,9 @@ class NotesPage extends ConsumerWidget {
             itemCount: notes.length,
             itemBuilder: (context, index) {
               final note = notes[index];
-              return ListTile(
-                title: Text(note.title),
-                subtitle: Text(note.body),
-                trailing: note.dirty
-                    ? const Chip(
-                        label: Text('Belum sync', style: TextStyle(fontSize: 10)),
-                        backgroundColor: Colors.amberAccent,
-                      )
-                    : const Icon(Icons.check_circle, color: Colors.green, size: 20),
+              // Menggunakan custom widget NoteTile hasil ekstraksi
+              return NoteTile(
+                note: note,
                 onLongPress: () async {
                   if (note.id != null) {
                     await ref.read(noteRepositoryProvider).deleteNote(note.id!);
@@ -130,12 +127,21 @@ class NotesPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul')),
-            TextField(controller: bodyController, decoration: const InputDecoration(labelText: 'Isi')),
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Judul'),
+            ),
+            TextField(
+              controller: bodyController,
+              decoration: const InputDecoration(labelText: 'Isi'),
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
           FilledButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
