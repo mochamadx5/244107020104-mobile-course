@@ -64,10 +64,12 @@ void main() {
         ),
       ],
     );
-    addTearDown(container.dispose);
-    await expectLater(
-      container.read(notesProvider.future),
+
+    expect(
+      () => container.read(notesProvider.future),
       throwsA(isA<Exception>()),
     );
+
+    container.dispose();
   });
 }
