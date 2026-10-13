@@ -222,3 +222,24 @@ Pemilihan solusi penyimpanan lokal Flutter sebaiknya didasarkan pada karakterist
 Untuk aplikasi catatan dengan lebih dari 1.000 data dan mekanisme sinkronisasi ke server, **Drift merupakan pilihan yang paling seimbang** karena menggabungkan kemampuan SQLite dengan query yang lebih aman, pengelolaan skema, dan stream reaktif.
 
 Sementara itu, untuk preferensi tema, SharedPreferences tetap menjadi pilihan yang sederhana dan efisien. Menggunakan solusi berbeda untuk kebutuhan penyimpanan yang berbeda merupakan pendekatan yang wajar dalam arsitektur aplikasi Flutter.
+
+### 5. AI Verification Checklist
+
+Berikut adalah hasil verifikasi terhadap rekomendasi AI sebelum diterapkan ke dalam proyek:
+
+1. **Apakah AI menempatkan daftar catatan di SharedPreferences? (menolak: rapuh untuk koleksi)**
+   **Tidak.** AI menolak penggunaan SharedPreferences untuk daftar catatan. AI menjelaskan dengan tepat bahwa SharedPreferences memuat seluruh datanya ke RAM saat aplikasi dimulai. Jika digunakan untuk menyimpan 1000+ catatan, aplikasi akan mengalami *jank* atau *UI freeze*. AI merekomendasikan SharedPreferences murni untuk preferensi tema saja.
+
+2. **Apakah skema AI mendukung antrean sync (dirty flag / updated_at) atau hanya CRUD polos?**
+   **Ya, mendukung penuh.** Skema yang diusulkan AI tidak sekadar CRUD polos. AI secara spesifik menyertakan kolom `dirty` (tipe Integer/Boolean) dan `updated_at`. Lebih penting lagi, AI memberikan perintah *indexing* (`CREATE INDEX idx_notes_dirty`) yang sangat krusial untuk performa antrean sync pada koleksi 1000+ data.
+
+3. **Apakah klaim "real-time" AI didukung stream (Drift/watch) atau hanya asumsi?**
+   **Didukung fakta fitur, bukan asumsi.** AI menyatakan dengan jelas mekanisme di balik reaktivitas tersebut, yaitu adanya fungsi `watch()` bawaan pada Hive dan *auto-updating Stream* kueri pada Drift. AI juga jujur menyatakan bahwa sqflite murni tidak memiliki reaktivitas bawaan dan memerlukan *refresh* manual.
+
+4. **Apakah estimasi boilerplate AI masuk akal setelah Anda mencoba instalasinya?**
+   **Masuk akal dan akurat.** AI menilai ukuran *boilerplate* Drift sebagai "Tinggi", karena memang membutuhkan pengaturan dependensi tambahan (`drift_dev`, `build_runner`), pembuatan skema, dan proses *code generation* sebelum bisa digunakan, yang mana sangat sesuai dengan realita proses instalasinya di Flutter.
+
+5. **Keputusan final beserta alasannya:**
+   **Saya menyetujui rekomendasi kombinasi dari AI.** 
+   * **SharedPreferences** terbukti sebagai pilihan paling masuk akal untuk menyimpan *state* sederhana seperti tema gelap (Dark Mode) karena dapat dibaca secara sinkron dengan cepat saat inisialisasi awal UI.
+   * **sqflite / Drift** adalah keharusan mutlak untuk menyimpan entitas data utama seperti Catatan. Kemampuan mesin SQLite mengeksekusi *query* secara efisien pada kolom terindeks (`dirty`) menjadikan mekanisme sinkronisasi data *offline-first* lebih terjamin, aman (*type-safe*), dan terukur (*scalable*) meskipun pengguna memiliki ribuan catatan.
