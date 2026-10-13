@@ -57,7 +57,7 @@ class NotesPage extends ConsumerWidget {
                 ),
               ),
               loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
           ),
           // 3. Tombol Sinkronisasi (Memanggil fungsi dari sync.dart)
