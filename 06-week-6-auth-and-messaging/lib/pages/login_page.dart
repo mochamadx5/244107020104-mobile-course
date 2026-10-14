@@ -34,7 +34,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
             // Pindah ke halaman utama
             if (context.mounted) {
-              context.go('/home');
+              context.go('/');
             }
           }
         },
