@@ -44,6 +44,3 @@ Berikut adalah tampilan tabel di atas saat dirender di GitHub `README.md` Anda
 | `lib/data/sync.dart` | `data` (+ logika bisnis) | Operasi bisnis sinkronisasi (`syncNotes`) berada di layer `data` dan memanggil class repository konkret alih-alih menjadi *Use Case* di layer `domain`. |
 
 ---
-   ```text
-   lib\pages\notes_page.dart:9:final noteRepositoryProvider = Provider((ref) => NoteRepository());
-   lib\pages\settings_page.dart:5:final prefsRepositoryProvider = Provider((ref) => PrefsRepository());
