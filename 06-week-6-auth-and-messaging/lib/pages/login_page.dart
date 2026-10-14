@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -30,6 +31,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Login Berhasil!')),
             );
+
+            // Pindah ke halaman utama
+            if (context.mounted) {
+              context.go('/home');
+            }
           }
         },
         error: (err, stack) {
