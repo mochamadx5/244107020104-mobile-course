@@ -20,22 +20,17 @@ class TokenStore {
   }
 
   Future<void> save({
-    required String accessToken,
-    String? refreshToken,
+    required String access,
+    String? refresh,
   }) async {
-    await _storage.write(key: _keyAccess, value: accessToken);
-    if (refreshToken != null) {
-      await _storage.write(key: _keyRefresh, value: refreshToken);
+    await _storage.write(key: _keyAccess, value: access);
+    if (refresh != null) {
+      await _storage.write(key: _keyRefresh, value: refresh);
     }
   }
 
-  Future<void> clear() async {
-    await _storage.delete(key: _keyAccess);
-    await _storage.delete(key: _keyRefresh);
-  }
-
-  // Kompatibilitas alias untuk provider
+  // Alias pembantu untuk provider
   Future<String?> getToken() => readAccess();
-  Future<void> saveToken(String token) => save(accessToken: token);
+  Future<void> saveToken(String token) => save(access: token);
   Future<void> deleteToken() => clear();
 }
