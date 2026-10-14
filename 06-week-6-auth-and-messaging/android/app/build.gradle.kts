@@ -2,14 +2,15 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services") version "4.4.2"
 }
+
+apply(plugin = "com.google.gms.google-services")
 
 android {
     namespace = "com.example.week6_auth_messaging"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
-
+    // ... sisa konfigurasi di bawahnya biarkan tetap sama ...
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
