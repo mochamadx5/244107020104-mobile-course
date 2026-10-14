@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "963902426520",
+    "project_id": "flutter-week6-19ae0",
+    "storage_bucket": "flutter-week6-19ae0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963902426520:android:bc4a8672561c9ce30c2fed",
+        "android_client_info": {
+          "package_name": "com.example.week6_auth_messaging"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyM18QEdOOqWKi4INDnEAmX5R7Q6bTbM4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
