@@ -1,20 +1,23 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+final tokenStoreProvider = Provider<TokenStore>((ref) {
+  return TokenStore();
+});
+
 class TokenStore {
-  TokenStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage();
+  static const _keyToken = 'auth_token';
 
-  final FlutterSecureStorage _storage;
-  static const _accessKey = 'access_token';
-  static const _refreshKey = 'refresh_token';
-
-  Future<void> save({required String access, required String refresh}) async {
-    await _storage.write(key: _accessKey, value: access);
-    await _storage.write(key: _refreshKey, value: refresh);
+  Future<void> saveToken(String token) async {
+    await _storage.write(key: _keyToken, value: token);
   }
 
-  Future<String?> readAccess() => _storage.read(key: _accessKey);
-  Future<String?> readRefresh() => _storage.read(key: _refreshKey);
+  Future<String?> getToken() async {
+    return await _storage.read(key: _keyToken);
+  }
 
-  Future<void> clear() => _storage.deleteAll();
+  Future<void> deleteToken() async {
+    await _storage.delete(key: _keyToken);
+  }
 }
