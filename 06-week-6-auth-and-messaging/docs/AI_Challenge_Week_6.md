@@ -158,9 +158,3 @@ Keputusan ini merupakan batasan ruang lingkup pengujian, bukan bukti bahwa pengu
 - Jangan menganggap notifikasi pasti tampil hanya karena channel telah dikonfigurasi. Izin pengguna, pengaturan perangkat, payload FCM, serta konfigurasi Firebase/APNs turut memengaruhi hasil.
 
 ---
-
-## 7. Kesimpulan
-
-Praktikum Week 6 berfokus pada integrasi autentikasi perangkat untuk push notification, penanganan pesan FCM pada berbagai kondisi aplikasi, local notification saat foreground, dan navigasi deep link melalui GoRouter. Audit awal menunjukkan bahwa struktur background handler sudah sesuai, sedangkan sinkronisasi token ke backend dan perlindungan log masih memerlukan perbaikan manual.
-
-Sebelum implementasi dinyatakan selesai, pastikan seluruh skenario pada checklist diuji pada perangkat target, termasuk izin notifikasi Android 13+, konfigurasi iOS, rotasi token, serta pembukaan aplikasi dari notifikasi FCM dan local notification.
