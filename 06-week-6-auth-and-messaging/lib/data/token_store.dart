@@ -10,7 +10,6 @@ class TokenStore {
   static const _keyAccess = 'access_token';
   static const _keyRefresh = 'refresh_token';
 
-  // Dipanggil oleh api_client.dart
   Future<String?> readAccess() async {
     return await _storage.read(key: _keyAccess);
   }
@@ -29,7 +28,13 @@ class TokenStore {
     }
   }
 
-  // Alias pembantu untuk provider
+  // Method clear untuk menghapus kedua token saat logout/401 expired
+  Future<void> clear() async {
+    await _storage.delete(key: _keyAccess);
+    await _storage.delete(key: _keyRefresh);
+  }
+
+  // Alias kompatibilitas
   Future<String?> getToken() => readAccess();
   Future<void> saveToken(String token) => save(access: token);
   Future<void> deleteToken() => clear();
