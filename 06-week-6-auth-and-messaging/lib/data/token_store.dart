@@ -6,7 +6,13 @@ final tokenStoreProvider = Provider<TokenStore>((ref) {
 });
 
 class TokenStore {
-  final _storage = const FlutterSecureStorage();
+  // Tambahkan AndroidOptions agar tidak deadlock di Keystore Android
+  final _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+  );
+
   static const _keyAccess = 'access_token';
   static const _keyRefresh = 'refresh_token';
 
@@ -28,7 +34,6 @@ class TokenStore {
     }
   }
 
-  // Method clear untuk menghapus kedua token saat logout/401 expired
   Future<void> clear() async {
     await _storage.delete(key: _keyAccess);
     await _storage.delete(key: _keyRefresh);
