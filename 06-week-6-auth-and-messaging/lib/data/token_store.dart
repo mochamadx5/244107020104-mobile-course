@@ -7,17 +7,35 @@ final tokenStoreProvider = Provider<TokenStore>((ref) {
 
 class TokenStore {
   final _storage = const FlutterSecureStorage();
-  static const _keyToken = 'auth_token';
+  static const _keyAccess = 'access_token';
+  static const _keyRefresh = 'refresh_token';
 
-  Future<void> saveToken(String token) async {
-    await _storage.write(key: _keyToken, value: token);
+  // Dipanggil oleh api_client.dart
+  Future<String?> readAccess() async {
+    return await _storage.read(key: _keyAccess);
   }
 
-  Future<String?> getToken() async {
-    return await _storage.read(key: _keyToken);
+  Future<String?> readRefresh() async {
+    return await _storage.read(key: _keyRefresh);
   }
 
-  Future<void> deleteToken() async {
-    await _storage.delete(key: _keyToken);
+  Future<void> save({
+    required String accessToken,
+    String? refreshToken,
+  }) async {
+    await _storage.write(key: _keyAccess, value: accessToken);
+    if (refreshToken != null) {
+      await _storage.write(key: _keyRefresh, value: refreshToken);
+    }
   }
+
+  Future<void> clear() async {
+    await _storage.delete(key: _keyAccess);
+    await _storage.delete(key: _keyRefresh);
+  }
+
+  // Kompatibilitas alias untuk provider
+  Future<String?> getToken() => readAccess();
+  Future<void> saveToken(String token) => save(accessToken: token);
+  Future<void> deleteToken() => clear();
 }
