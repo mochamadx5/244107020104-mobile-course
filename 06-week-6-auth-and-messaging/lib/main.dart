@@ -38,16 +38,16 @@ void main() async {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (_, _) => const LoginPage(),
+        builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
         path: '/',
-        builder: (_, _) => const HomePage(),
+        builder: (context, state) => const HomePage(),
       ),
       GoRoute(
         path: '/pengumuman/:id',
-        builder: (_, s) =>
-            AnnouncementPage(id: s.pathParameters['id'] ?? ''),
+        builder: (context, state) =>
+        AnnouncementPage(id: state.pathParameters['id'] ?? ''),
       ),
     ],
   );
