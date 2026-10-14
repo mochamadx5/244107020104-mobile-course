@@ -1,7 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'messaging/push_service.dart';
 import 'pages/announcement_page.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
@@ -10,7 +13,14 @@ import 'providers/auth_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi container agar bisa dibaca di luar widget tree (oleh GoRouter)
+  // Inisialisasi Firebase & Handler Background
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Inisialisasi Push Service
+  final pushService = PushService();
+  await pushService.initialize();
+
   final container = ProviderContainer();
 
   final router = GoRouter(
@@ -19,23 +29,20 @@ void main() async {
       final loggedIn =
           container.read(authStateProvider).value ?? false;
       final goingLogin = state.matchedLocation == '/login';
-      
-      // Pengaman rute: arahkan ke login jika belum terautentikasi
+
       if (!loggedIn && !goingLogin) return '/login';
-      
-      // Jika sudah login tetapi mencoba akses halaman login, lempar ke beranda
       if (loggedIn && goingLogin) return '/';
-      
+
       return null;
     },
     routes: [
       GoRoute(
         path: '/login',
-        builder: (_, __) => const LoginPage(),
+        builder: (_, _) => const LoginPage(),
       ),
       GoRoute(
         path: '/',
-        builder: (_, __) => const HomePage(),
+        builder: (_, _) => const HomePage(),
       ),
       GoRoute(
         path: '/pengumuman/:id',
