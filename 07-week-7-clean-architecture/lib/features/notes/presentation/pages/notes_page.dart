@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../pages/settings_page.dart';
-import '../../domain/entities/note.dart';
 import '../providers/notes_providers.dart';
 
 class NotesPage extends ConsumerWidget {
