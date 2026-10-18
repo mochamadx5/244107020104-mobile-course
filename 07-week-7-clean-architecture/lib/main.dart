@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'data/prefs.dart';
-import 'pages/notes_page.dart';
+import 'features/notes/presentation/pages/notes_page.dart';
 import 'pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Tandai waktu terakhir dibuka saat aplikasi start (Praktikum 1)
   final prefsRepo = PrefsRepository();
   await prefsRepo.markOpenedNow();
 
