@@ -5,7 +5,7 @@ import '../../domain/repositories/note_repository.dart';
 import '../models/note_model.dart';
 
 class NoteRepositoryImpl implements NoteRepository {
-  NoteRepositoryImpl({required Future<Database> Function() this._openDb});
+  NoteRepositoryImpl({required this._openDb});
 
   final Future<Database> Function() _openDb;
 
