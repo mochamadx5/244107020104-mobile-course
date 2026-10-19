@@ -63,17 +63,16 @@ lib/
 
 ---
 
-## 3. Bukti Behavior Identik (Before vs After Refactor)
+### 3. Bukti Behavior Identik (Before vs After Refactor)
 
-Berikut adalah perbandingan tampilan aplikasi sebelum di-refactor (Minggu 5) dan sesudah di-refactor (Minggu 7). Tampilan, fitur badge *Dirty*, dan *Dark Mode* tetap **100% identik**.
+Berikut adalah bukti tangkapan layar fitur aplikasi sesudah di-refactor menggunakan arsitektur *Clean Architecture* (Minggu 7). Tampilan, fitur badge *Dirty*, antrean *Sync*, dan *Dark Mode* tetap **100% identik** dengan fungsionalitas Minggu 5 tanpa ada error tampilan.
 
-| Fitur / State | Sebelum Refactor (Minggu 5) | Sesudah Refactor (Minggu 7) |
-| :--- | :--- | :--- |
-| **Empty State**<br>*(Awal dibuka, belum ada data)* | ![Before 1](screenshots/01_empty_state_2.png) | ![After 1](screenshots/after_01_empty_state.png) |
-| **Data Kotor (Belum Sync)**<br>*(Tambah catatan offline)* | ![Before 2](screenshots/02_dirty_badge_before_sync_2.png) | ![After 2](screenshots/after_02_dirty_before_sync.png) |
-| **Data Bersih (Sesudah Sync)**<br>*(Tombol sync ditekan)* | ![Before 3](screenshots/03_dirty_badge_after_sync_2.png) | ![After 3](screenshots/after_03_dirty_after_sync.png) |
-| **Dark Mode**<br>*(Mengubah tema di pengaturan)* | ![Before 4](screenshots/04_dark_mode_2.png) | ![After 4](screenshots/after_04_dark_mode.png) |
-
+| Fitur / State | Bukti Sesudah Refactor (Minggu 7) |
+| :--- | :--- |
+| **Empty State**<br>*(Awal dibuka, belum ada data)* | <img src="screenshots/01_empty_state.png" width="250"/> |
+| **Data Kotor (Belum Sync)**<br>*(Tambah catatan offline)* | <img src="screenshots/02_dirty_badge_before_sync.png" width="250"/> |
+| **Data Bersih (Sesudah Sync)**<br>*(Tombol sync ditekan)* | <img src="screenshots/03_dirty_badge_after_sync.png" width="250"/> |
+| **Dark Mode**<br>*(Mengubah tema di pengaturan)* | <img src="screenshots/04_dark_mode.png" width="250"/> |
 ---
 
 ## 4. Verifikasi Clean Architecture & Unit Testing
