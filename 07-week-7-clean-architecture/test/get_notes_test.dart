@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
-// Sesuaikan path import ini jika Anda menggunakan package: atau path absolut
-import '../lib/core/failures.dart';
-import '../lib/features/notes/domain/entities/note.dart';
-import '../lib/features/notes/domain/repositories/note_repository.dart';
-import '../lib/features/notes/domain/usecases/get_notes.dart';
+// package rules
+import 'package:week5_offline_notes/core/failures.dart';
+import 'package:week5_offline_notes/features/notes/domain/entities/note.dart';
+import 'package:week5_offline_notes/features/notes/domain/repositories/note_repository.dart';
+import 'package:week5_offline_notes/features/notes/domain/usecases/get_notes.dart';
 
 // 1. Membuat Repository Palsu (Murni Dart)
 class FakeNoteRepository implements NoteRepository {
