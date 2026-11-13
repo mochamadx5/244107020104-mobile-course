@@ -40,5 +40,13 @@ Semua pemeriksaan mesin pada branch integrasi berstatus hijau tanpa peringatan a
 ### A. Output `flutter analyze`
 ```bash
 PS C:\Users\USER\244107020104-mobile-course\07-week-7-clean-architecture> flutter analyze
+
+┌─────────────────────────────────────────────────────────┐
+│ A new version of Flutter is available!                  │
+│                                                         │
+│ To update to the latest version, run "flutter upgrade". │
+└─────────────────────────────────────────────────────────┘
 Analyzing 07-week-7-clean-architecture...
-No issues found! (ran in 1.8s)
+No issues found! (ran in 22.9s)
+PS C:\Users\USER\244107020104-mobile-course\07-week-7-clean-architecture> flutter test
+00:18 +6: All tests passed!
