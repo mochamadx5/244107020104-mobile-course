@@ -1,0 +1,11 @@
+name: ci
+on: [pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+      - run: cd 07-week-7-clean-architecture && flutter pub get
+      - run: cd 07-week-7-clean-architecture && flutter analyze
+      - run: cd 07-week-7-clean-architecture && flutter test
