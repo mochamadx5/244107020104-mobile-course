@@ -1,57 +1,238 @@
-# Laporan AI Challenge - Praktikum 7 (Clean Architecture)
+# Log AI-Assisted Development (Week 9)
 
-## 1. Teks Prompt
-Berikut adalah prompt yang digunakan untuk menguji AI terkait restrukturisasi project `campus_notify`:
-
-> Project Flutter saya: campus_notify (auth + FCM + daftar pengumuman).
-> Kondisi kini: folder lib/{data, providers, pages, messaging}, repository tercampur dengan implementasi, widget memanggil Dio langsung.
-> Tugas:
-> 1. Usulkan struktur feature-first Clean Architecture (presentation/domain/data) untuk fitur auth + announcements.
-> 2. Untuk tiap file lama, sebutkan tujuan barunya (pindah/pecah/hapus).
-> 3. Tandai bagian yang over-engineering bila diterapkan ke CRUD sederhana, dan kapan use case benar-benar dibutuhkan vs repository langsung.
-> 4. Tunjukkan wiring DI dengan Riverpod (tanpa package DI tambahan).
-> Jelaskan trade-off setiap keputusan.
+**Mata Kuliah:** Mobile Development  
+**Topik:** AI-Assisted Development (Search, Filter, and Empty State)  
+**Tools AI:** GitHub Copilot  
+**Branch Git:** `feat/notes-title-search`  
 
 ---
 
-## 2. Output Usulan Arsitektur & Penjelasan AI
+## Praktikum 1: Prompt & Context Engineering
 
-**Usulan Struktur Feature-First:**
-AI mengusulkan pemisahan fitur secara independen (`auth` dan `announcements`), ditambah folder `core` untuk konfigurasi global seperti Dio dan layanan Firebase.
-* `lib/core/` (network, messaging, failures)
-* `lib/features/auth/` (domain, data, presentation)
-* `lib/features/announcements/` (domain, data, presentation)
+### 1. Formula 5 Slot Prompt
+Berikut adalah prompt terstruktur yang dirumuskan dan dikirimkan ke GitHub Copilot:
 
-**Pemetaan File Lama:**
-* `lib/data/api_client.dart` -> Pindah ke `lib/core/network/dio_client.dart`
-* `lib/messaging/fcm_service.dart` -> Pindah ke `lib/core/messaging/fcm_service.dart`
-* `lib/data/auth_repository.dart` -> Dipecah: Interface ke `auth/domain/repositories/`, implementasi ke `auth/data/repositories/`
-* `lib/providers/auth_provider.dart` -> Pindah ke `auth/presentation/providers/`
-* `lib/pages/home_page.dart` -> Pindah ke `announcements/presentation/pages/` dan dibersihkan dari pemanggilan Dio langsung.
+* **Peran:** Senior Flutter Developer
+* **Konteks:**
+  * Struktur Feature-First Clean Architecture (`presentation` -> `domain` <- `data`).
+  * State management: `flutter_riverpod`, Local storage: `sqflite`.
+  * Entity: `Note({id, title, body, updatedAt, dirty})` di `lib/features/notes/domain/entities/note.dart`.
+* **Tugas:** Tambah fitur search/filter catatan berdasarkan judul (`title`) + tampilan *empty state* saat hasil pencarian tidak menemukan hasil ("Catatan tidak ditemukan").
+* **Batas:**
+  * Jangan ubah arsitektur layer yang sudah ada.
+  * Jangan panggil SQLite dari layer widget/presentation.
+  * Maksimal 80 baris perubahan kode.
+* **Output:** Kode implementasi + 3 test case (unit/widget test) + langkah cara uji manual.
 
-**Analisis Over-Engineering (Use Case vs Repository):**
-AI menyoroti bahwa menggunakan *Use Case* untuk CRUD satu baris (seperti `fetchAnnouncements()`) adalah *over-engineering* karena hanya menambah *boilerplate* tanpa logika bisnis tambahan. Sebaliknya, *Use Case* sangat diperlukan untuk alur yang kompleks seperti `LoginUseCase`, di mana aplikasi harus mengambil token API, mengambil token FCM, dan menyimpannya ke secure storage secara berurutan.
-
-**Wiring Riverpod (DI):**
-AI memusatkan injeksi dependensi menggunakan provider Riverpod di layer *presentation* (`providers.dart`), seperti menyuntikkan `dioProvider` ke `announcementRepositoryProvider`, lalu hasilnya dikonsumsi oleh `announcementsProvider` (FutureProvider) untuk UI.
-
----
-
-## 3. AI Verification Checklist & Tabel Keputusan Final
-
-| Pertanyaan Verifikasi | Hasil Pengecekan pada Output AI | Keputusan Final |
-| :--- | :--- | :--- |
-| **Apakah interface repository tinggal di `domain` dan implementasi di `data`?** | **Lulus.** AI memecah `auth_repository.dart` lama dengan benar ke dalam `domain/repositories` (interface) dan `data/repositories` (implementasi). | Diterima. Ini memastikan lapisan bisnis tidak bergantung pada implementasi teknis. |
-| **Apakah `domain` bebas import Flutter/Dio/SQLite/Firebase?** | **Lulus.** AI memisahkan file konfigurasi FCM dan Dio ke folder `core` dan menjaga `domain` murni berisi logika bisnis Dart. | Diterima. Layer `domain` siap diuji dengan murni (*unit testable*). |
-| **Apakah AI membuat use case untuk tiap CRUD satu-baris?** | **Lulus.** AI menyadari potensi *over-engineering* dan merekomendasikan pemanggilan langsung repository dari notifier untuk CRUD pengumuman yang sederhana. | Diterima. Ini menghemat *boilerplate* dan menjaga kecepatan pengembangan fitur sederhana. |
-| **Apakah entity bebas mapping (`toMap`/`fromMap`/`toJson` hanya di model)?** | **Lulus.** AI secara eksplisit memisahkan `UserModel` (di data layer) untuk keperluan parsing JSON dan `User` Entity (di domain layer) sebagai objek bisnis murni. | Diterima. Fleksibilitas tinggi bila respons API berubah di masa depan. |
-| **Apakah wiring DI terpusat di provider dan widget tidak `new Repository()` sendiri?** | **Lulus.** AI mendemonstrasikan file `providers.dart` untuk *wiring* dependensi, menghindari instansiasi manual di dalam widget UI. | Diterima. Widget menjadi "bodoh" (hanya menampilkan state) dan mudah diuji. |
+### 2. Analisis Kualitas Konteks
+* **Zero Secrets:** Prompt tidak memuat kredensial, token API, maupun query database mentah yang sensitif.
+* **Presisi Batasan:** Menetapkan batas ukuran perubahan (maksimal 80 baris) dan melarang manipulasi database dari widget.
+* **Target Kontrak:** Menyertakan lokasi entity bisnis `Note` agar AI mengenali struktur data yang sudah ada tanpa mendefinisikan model baru.
 
 ---
 
-## 4. Alasan Teknis Penyesuaian
+## Praktikum 2: Generate & Verifikasi Hasil AI
 
-Berdasarkan analisis di atas, saya **menerima secara penuh** rekomendasi AI tersebut dengan argumen teknis berikut:
-1. **Ketahanan Skalabilitas:** Mengadopsi *Feature-First* sangat ideal karena memisahkan *Auth* dan *Announcements* secara total. Jika kelak fitur pengumuman diganti atau dihapus, folder `auth` tidak akan terdampak sedikit pun.
-2. **Efisiensi Kode (Mencegah Over-engineering):** Rekomendasi AI untuk mengizinkan layer *Presentation* mengakses *Repository* secara langsung pada operasi CRUD sederhana (*pass-through*) sangat efisien bagi ukuran tim kecil, sehingga kita tidak terjebak membuat puluhan class *Use Case* kosong.
-3. **Sentralisasi Dependensi:** Penggunaan Riverpod murni sebagai *Service Locator* di satu tempat (`providers.dart`) memudahkan *mocking* repository saat melakukan UI testing.
+### 1. Output Mentah dari GitHub Copilot
+AI mengeksekusi perubahan langsung ke dalam file `lib/features/notes/presentation/pages/notes_page.dart` pada branch `feat/notes-title-search`:
+
+```dart
+// ignore_for_file: deprecated_member_use
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../pages/settings_page.dart';
+import '../../domain/entities/note.dart';
+import '../providers/notes_providers.dart';
+
+final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
+
+class SearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+  void setQuery(String value) => state = value;
+}
+
+List<Note> filterNotesByTitle(List<Note> notes, String query) {
+  final q = query.trim().toLowerCase();
+  return q.isEmpty ? notes : notes.where((note) => note.title.toLowerCase().contains(q)).toList();
+}
+
+class NotesPage extends ConsumerWidget {
+  const NotesPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notesAsync = ref.watch(notesProvider);
+    final dirtyAsync = ref.watch(dirtyCountProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Offline Notes'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Pengaturan',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsPage()),
+            ),
+          ),
+          Center(
+            child: dirtyAsync.when(
+              data: (count) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: count > 0 ? Colors.orange : Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text('Dirty: $count', style: const TextStyle(color: Colors.white, fontSize: 12)),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.sync),
+            tooltip: 'Sync Notes',
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menyinkronkan data...')));
+              final syncResult = await ref.read(syncNotesProvider).call();
+              ref.invalidate(notesProvider);
+              ref.invalidate(dirtyCountProvider);
+              if (context.mounted) {
+                final message = syncResult.failure?.message ?? '${syncResult.syncedCount} catatan berhasil disinkronkan!';
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+              }
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Cari berdasarkan judul',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: ref.read(searchQueryProvider.notifier).setQuery,
+            ),
+          ),
+          Expanded(
+            child: notesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(child: Text('Error: $err')),
+              data: (notes) {
+                if (notes.isEmpty) return const Center(child: Text('Belum ada catatan.'));
+                final filtered = filterNotesByTitle(notes, ref.watch(searchQueryProvider));
+                if (filtered.isEmpty) return const Center(child: Text('Catatan tidak ditemukan'));
+                return ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final note = filtered[index];
+                    return ListTile(
+                      title: Text(note.title),
+                      subtitle: Text(note.body),
+                      trailing: note.dirty
+                          ? const Chip(label: Text('Belum sync', style: TextStyle(fontSize: 10)), backgroundColor: Colors.amberAccent)
+                          : const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                      onLongPress: () async {
+                        if (note.id != null) {
+                          await ref.read(noteRepositoryProvider).deleteNote(note.id!);
+                          ref.invalidate(notesProvider);
+                          ref.invalidate(dirtyCountProvider);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () => _showAddDialog(context, ref),
+      ),
+    );
+  }
+
+  void _showAddDialog(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController();
+    final bodyController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tambah Catatan'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul')),
+            TextField(controller: bodyController, decoration: const InputDecoration(labelText: 'Isi')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          FilledButton(
+            onPressed: () async {
+              if (titleController.text.isNotEmpty) {
+                final result = await ref.read(addNoteProvider).call(title: titleController.text, body: bodyController.text);
+                if (result.failure != null && ctx.mounted) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(result.failure!.message)));
+                } else {
+                  ref.invalidate(notesProvider);
+                  ref.invalidate(dirtyCountProvider);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                }
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+### 2. Pelaksanaan Verifikasi 6 Langkah
+
+1. **Membaca Tiap Baris Kode:**
+   Kode menjalankan filter di dalam callback UI `.when(data: (notes) { ... })`. Fungsionalitas pencarian berjalan, namun struktur penempatannya bermasalah.
+2. **Cek Import & Batas Layer:**
+   * Ditemukan fungsi logika bisnis `filterNotesByTitle` diletakkan di file UI `notes_page.dart`. Fungsi ini seharusnya berada di layer `domain/usecases/filter_notes.dart` agar murni Dart.
+   * Deklarasi `SearchQueryNotifier` dan `searchQueryProvider` tercampur di dalam file presentasi UI, bukan di file provider terdedikasi (`notes_providers.dart`).
+3. **Cek API Nyata & Autocomplete:**
+   Seluruh API Riverpod (`Notifier`, `NotifierProvider`) dan Flutter Material valid dan dikenali pada Flutter SDK yang digunakan.
+4. **Verifikasi `flutter analyze`:**
+   Dijalankan di root direktori Week 9:
+   ```text
+   Analyzing 09-week-9-ai-assisted-development...
+   No issues found! (ran in 9.2s)
+   ```
+   Analisis statis bersih dari error sintaks.
+5. **Uji Otomatis (Unit & Widget Test):**
+   AI tidak membuat file test di folder `test/`. File test pengujian (`test/search_filter_test.dart`) harus disiapkan manual untuk memverifikasi logika filter (case-insensitive, query kosong, query tidak cocok) serta kemunculan widget teks "Catatan tidak ditemukan".
+6. **Uji Manual UI:**
+   * Input teks kosong: seluruh daftar catatan tampil.
+   * Input kata kunci cocok (misal: "pcvk"): hanya catatan terkait yang tampil.
+   * Input kata kunci acak (misal: "matematika"): menampilkan empty state "Catatan tidak ditemukan".
+
+---
+
+### 3. Temuan Kelemahan, Halusinasi, dan Pelanggaran Arsitektur AI
+
+Berikut adalah bukti temuan kritis pada kode yang dihasilkan oleh AI:
+
+| No | Kategori Temuan | Detail Masalah | Dampak & Bukti Teknis |
+| :---: | :--- | :--- | :--- |
+| **1** | **Pelanggaran Clean Architecture (Layer Leaking)** | AI menaruh fungsi `filterNotesByTitle` langsung di `notes_page.dart`. | Logika bisnis tercampur ke UI. Logika filter tidak dapat diuji secara mandiri tanpa memuat dependensi Flutter UI (`package:flutter/material.dart`). |
+| **2** | **Pencampuran State & Widget (DI Smell)** | Deklarasi `searchQueryProvider` dan notifernya ditulis di dalam file tampilan UI. | Mengulangi code smell Week 5 yang sebelumnya telah diaudit dan diperbaiki di Week 7. Seharusnya dikumpulkan di `features/notes/presentation/providers/notes_providers.dart`. |
+| **3** | **Halusinasi Linter Suppression** | AI menambahkan anotasi `// ignore_for_file: deprecated_member_use` di baris 1. | Tidak ada satupun API usang (*deprecated*) yang dipanggil di kode tersebut. AI menunjukkan kebiasaan "menutup mata" terhadap peringatan linter alih-alih memastikan kebersihan kode secara nyata. |
+| **4** | **Sub-optimal State Reactivity** | Pemanggilan `ref.watch(searchQueryProvider)` diletakkan di dalam callback builder `.when(data: ...)`. | Komputasi filter dilakukan secara berulang langsung di siklus *render tree* alih-alih memanfaatkan *derived provider* (`filteredNotesProvider`). |
