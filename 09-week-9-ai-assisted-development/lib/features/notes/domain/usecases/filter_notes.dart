@@ -1,4 +1,4 @@
-﻿import '../entities/note.dart';
+import '../entities/note.dart';
 
 List<Note> filterNotesByTitle(List<Note> notes, String query) {
   final q = query.trim().toLowerCase();
