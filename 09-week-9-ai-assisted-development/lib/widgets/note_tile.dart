@@ -1,16 +1,13 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+
 import '../data/local/note.dart';
 
 class NoteTile extends StatelessWidget {
   final Note note;
   final VoidCallback onLongPress;
 
-  const NoteTile({
-    super.key,
-    required this.note,
-    required this.onLongPress,
-  });
+  const NoteTile({super.key, required this.note, required this.onLongPress});
 
   @override
   Widget build(BuildContext context) {

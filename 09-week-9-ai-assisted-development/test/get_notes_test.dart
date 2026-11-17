@@ -23,10 +23,13 @@ class FakeNoteRepository implements NoteRepository {
     return (notes: items, failure: null);
   }
 
-  // Wajib melakukan override pada metode kontrak lainnya 
+  // Wajib melakukan override pada metode kontrak lainnya
   // (karena GetNotes tidak memanggil fungsi ini, kita bisa lemparkan UnimplementedError)
   @override
-  Future<({Note? note, Failure? failure})> addNote({required String title, String body = ''}) {
+  Future<({Note? note, Failure? failure})> addNote({
+    required String title,
+    String body = '',
+  }) {
     throw UnimplementedError();
   }
 
@@ -51,9 +54,7 @@ void main() {
   test('GetNotes meneruskan daftar dari repository jika sukses', () async {
     // Arrange: Siapkan fake repository berisi 1 data tiruan
     final repo = FakeNoteRepository(
-      items: [
-        Note(title: 'Tugas A', updatedAt: DateTime(2026, 9, 27)),
-      ],
+      items: [Note(title: 'Tugas A', updatedAt: DateTime(2026, 9, 27))],
     );
 
     // Act: Panggil Use Case
@@ -65,15 +66,18 @@ void main() {
     expect(result.notes.first.title, 'Tugas A');
   });
 
-  test('GetNotes meneruskan failure tanpa melempar exception jika gagal', () async {
-    // Arrange: Siapkan fake repository yang diatur untuk selalu gagal
-    final repo = FakeNoteRepository(fail: true);
+  test(
+    'GetNotes meneruskan failure tanpa melempar exception jika gagal',
+    () async {
+      // Arrange: Siapkan fake repository yang diatur untuk selalu gagal
+      final repo = FakeNoteRepository(fail: true);
 
-    // Act: Panggil Use Case
-    final result = await GetNotes(repo).call();
+      // Act: Panggil Use Case
+      final result = await GetNotes(repo).call();
 
-    // Assert: Verifikasi bahwa tipe error sesuai dan daftar kosong
-    expect(result.failure, isA<LocalFailure>());
-    expect(result.notes, isEmpty);
-  });
+      // Assert: Verifikasi bahwa tipe error sesuai dan daftar kosong
+      expect(result.failure, isA<LocalFailure>());
+      expect(result.notes, isEmpty);
+    },
+  );
 }

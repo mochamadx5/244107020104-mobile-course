@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
-import 'package:flutter/material.dart';import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../data/local/note.dart';
 import '../data/repositories/note_repository.dart';
 import '../data/sync.dart';
@@ -35,9 +37,7 @@ class NotesPage extends ConsumerWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const SettingsPage(),
-                ),
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
               );
             },
           ),
@@ -68,15 +68,17 @@ class NotesPage extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Menyinkronkan data...')),
               );
-              
+
               final repo = ref.read(noteRepositoryProvider);
               final count = await syncNotes(repo);
-              
+
               ref.invalidate(notesProvider);
               ref.invalidate(dirtyCountProvider);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$count catatan berhasil disinkronkan!')),
+                  SnackBar(
+                    content: Text('$count catatan berhasil disinkronkan!'),
+                  ),
                 );
               }
             },
@@ -145,7 +147,9 @@ class NotesPage extends ConsumerWidget {
           FilledButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
-                await ref.read(noteRepositoryProvider).addNote(
+                await ref
+                    .read(noteRepositoryProvider)
+                    .addNote(
                       title: titleController.text,
                       body: bodyController.text,
                     );
