@@ -1,30 +1,16 @@
-// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../pages/settings_page.dart';
-import '../../domain/entities/note.dart';
 import '../providers/notes_providers.dart';
-
-final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
-
-class SearchQueryNotifier extends Notifier<String> {
-  @override
-  String build() => '';
-  void setQuery(String value) => state = value;
-}
-
-List<Note> filterNotesByTitle(List<Note> notes, String query) {
-  final q = query.trim().toLowerCase();
-  return q.isEmpty ? notes : notes.where((note) => note.title.toLowerCase().contains(q)).toList();
-}
 
 class NotesPage extends ConsumerWidget {
   const NotesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notesAsync = ref.watch(notesProvider);
+    final filteredAsync = ref.watch(filteredNotesProvider);
     final dirtyAsync = ref.watch(dirtyCountProvider);
+    final query = ref.watch(searchQueryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +33,8 @@ class NotesPage extends ConsumerWidget {
                   color: count > 0 ? Colors.orange : Colors.green,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('Dirty: $count', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                child: Text('Dirty: $count',
+                    style: const TextStyle(color: Colors.white, fontSize: 12)),
               ),
               loading: () => const SizedBox.shrink(),
               error: (_, _) => const SizedBox.shrink(),
@@ -57,13 +44,16 @@ class NotesPage extends ConsumerWidget {
             icon: const Icon(Icons.sync),
             tooltip: 'Sync Notes',
             onPressed: () async {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Menyinkronkan data...')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Menyinkronkan data...')));
               final syncResult = await ref.read(syncNotesProvider).call();
               ref.invalidate(notesProvider);
               ref.invalidate(dirtyCountProvider);
               if (context.mounted) {
-                final message = syncResult.failure?.message ?? '${syncResult.syncedCount} catatan berhasil disinkronkan!';
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                final message = syncResult.failure?.message ??
+                    '${syncResult.syncedCount} catatan berhasil disinkronkan!';
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(message)));
               }
             },
           ),
@@ -74,31 +64,46 @@ class NotesPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
-              decoration: const InputDecoration(hintText: 'Cari berdasarkan judul', prefixIcon: Icon(Icons.search), border: OutlineInputBorder()),
+              key: const Key('search_field'),
+              decoration: const InputDecoration(
+                hintText: 'Cari berdasarkan judul',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
               onChanged: ref.read(searchQueryProvider.notifier).setQuery,
             ),
           ),
           Expanded(
-            child: notesAsync.when(
+            child: filteredAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, _) => Center(child: Text('Error: $err')),
               data: (notes) {
-                if (notes.isEmpty) return const Center(child: Text('Belum ada catatan.'));
-                final filtered = filterNotesByTitle(notes, ref.watch(searchQueryProvider));
-                if (filtered.isEmpty) return const Center(child: Text('Catatan tidak ditemukan'));
+                if (notes.isEmpty) {
+                  return Center(
+                    child: Text(query.trim().isEmpty
+                        ? 'Belum ada catatan.'
+                        : 'Catatan tidak ditemukan'),
+                  );
+                }
                 return ListView.builder(
-                  itemCount: filtered.length,
+                  itemCount: notes.length,
                   itemBuilder: (context, index) {
-                    final note = filtered[index];
+                    final note = notes[index];
                     return ListTile(
                       title: Text(note.title),
                       subtitle: Text(note.body),
                       trailing: note.dirty
-                          ? const Chip(label: Text('Belum sync', style: TextStyle(fontSize: 10)), backgroundColor: Colors.amberAccent)
-                          : const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                          ? const Chip(
+                              label: Text('Belum sync',
+                                  style: TextStyle(fontSize: 10)),
+                              backgroundColor: Colors.amberAccent)
+                          : const Icon(Icons.check_circle,
+                              color: Colors.green, size: 20),
                       onLongPress: () async {
                         if (note.id != null) {
-                          await ref.read(noteRepositoryProvider).deleteNote(note.id!);
+                          await ref
+                              .read(noteRepositoryProvider)
+                              .deleteNote(note.id!);
                           ref.invalidate(notesProvider);
                           ref.invalidate(dirtyCountProvider);
                         }
@@ -128,18 +133,25 @@ class NotesPage extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: titleController, decoration: const InputDecoration(labelText: 'Judul')),
-            TextField(controller: bodyController, decoration: const InputDecoration(labelText: 'Isi')),
+            TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Judul')),
+            TextField(
+                controller: bodyController,
+                decoration: const InputDecoration(labelText: 'Isi')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
           FilledButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
-                final result = await ref.read(addNoteProvider).call(title: titleController.text, body: bodyController.text);
+                final result = await ref.read(addNoteProvider).call(
+                    title: titleController.text, body: bodyController.text);
                 if (result.failure != null && ctx.mounted) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(result.failure!.message)));
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text(result.failure!.message)));
                 } else {
                   ref.invalidate(notesProvider);
                   ref.invalidate(dirtyCountProvider);
