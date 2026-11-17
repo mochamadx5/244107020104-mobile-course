@@ -19,10 +19,12 @@ class NotesPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Pengaturan',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingsPage()),
-            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              );
+            },
           ),
           Center(
             child: dirtyAsync.when(
@@ -33,8 +35,10 @@ class NotesPage extends ConsumerWidget {
                   color: count > 0 ? Colors.orange : Colors.green,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('Dirty: $count',
-                    style: const TextStyle(color: Colors.white, fontSize: 12)),
+                child: Text(
+                  'Dirty: $count',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
               ),
               loading: () => const SizedBox.shrink(),
               error: (_, _) => const SizedBox.shrink(),
@@ -45,15 +49,17 @@ class NotesPage extends ConsumerWidget {
             tooltip: 'Sync Notes',
             onPressed: () async {
               ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Menyinkronkan data...')));
+                const SnackBar(content: Text('Menyinkronkan data...')),
+              );
               final syncResult = await ref.read(syncNotesProvider).call();
               ref.invalidate(notesProvider);
               ref.invalidate(dirtyCountProvider);
               if (context.mounted) {
                 final message = syncResult.failure?.message ??
                     '${syncResult.syncedCount} catatan berhasil disinkronkan!';
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(message)));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
               }
             },
           ),
@@ -80,9 +86,11 @@ class NotesPage extends ConsumerWidget {
               data: (notes) {
                 if (notes.isEmpty) {
                   return Center(
-                    child: Text(query.trim().isEmpty
-                        ? 'Belum ada catatan.'
-                        : 'Catatan tidak ditemukan'),
+                    child: Text(
+                      query.trim().isEmpty
+                          ? 'Belum ada catatan.'
+                          : 'Catatan tidak ditemukan',
+                    ),
                   );
                 }
                 return ListView.builder(
@@ -94,11 +102,17 @@ class NotesPage extends ConsumerWidget {
                       subtitle: Text(note.body),
                       trailing: note.dirty
                           ? const Chip(
-                              label: Text('Belum sync',
-                                  style: TextStyle(fontSize: 10)),
-                              backgroundColor: Colors.amberAccent)
-                          : const Icon(Icons.check_circle,
-                              color: Colors.green, size: 20),
+                              label: Text(
+                                'Belum sync',
+                                style: TextStyle(fontSize: 10),
+                              ),
+                              backgroundColor: Colors.amberAccent,
+                            )
+                          : const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 20,
+                            ),
                       onLongPress: () async {
                         if (note.id != null) {
                           await ref
@@ -134,24 +148,31 @@ class NotesPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Judul')),
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Judul'),
+            ),
             TextField(
-                controller: bodyController,
-                decoration: const InputDecoration(labelText: 'Isi')),
+              controller: bodyController,
+              decoration: const InputDecoration(labelText: 'Isi'),
+            ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
           FilledButton(
             onPressed: () async {
               if (titleController.text.isNotEmpty) {
                 final result = await ref.read(addNoteProvider).call(
-                    title: titleController.text, body: bodyController.text);
+                      title: titleController.text,
+                      body: bodyController.text,
+                    );
                 if (result.failure != null && ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text(result.failure!.message)));
+                    SnackBar(content: Text(result.failure!.message)),
+                  );
                 } else {
                   ref.invalidate(notesProvider);
                   ref.invalidate(dirtyCountProvider);
