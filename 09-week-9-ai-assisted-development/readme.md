@@ -1,102 +1,130 @@
-# Tugas Minggu 7: Clean Architecture & SOLID Principles
+# Tugas Minggu 9: AI-Assisted Development
 
+**Nama:** Mochamad Reza Firdaus  
+**NIM:** 244107020104  
+**Kelas:** TI-2  
 **Mata Kuliah:** Mobile Development  
-**Aplikasi:** Offline Notes (Refactor dari project Minggu 5)  
+**Aplikasi:** Offline Notes (Fitur Search, Filter & Empty State)  
+**Branch Git:** `feat/notes-title-search`  
 
-Aplikasi ini merupakan hasil *refactoring* dari project manajemen catatan (*Offline Notes*) agar mematuhi aturan **SOLID** dan menerapkan struktur **Feature-First Clean Architecture**. Tujuan utama perombakan ini adalah untuk memisahkan lapisan UI (*Presentation*), logika bisnis (*Domain*), dan infrastruktur data (*Data*), tanpa mengubah fungsionalitas dan tampilan UI yang sudah ada.
-
----
-
-## 1. Praktikum 1: Audit Layer Project Lama
-
-Berikut adalah pemetaan file dari project sebelumnya (`week5_offline_notes`) beserta masalah arsitektur yang melanggar *Dependency Rule*:
-
-| File | Layer saat ini | Masalah |
-| :--- | :--- | :--- |
-| `lib/main.dart` | `presentation` (root) | Menginstansiasi `PrefsRepository()` secara manual di dalam `main()` (DI bocor) dan belum memisahkan konfigurasi rute ke `routes.dart`. |
-| `lib/pages/notes_page.dart` | `presentation` (+ state & DI) | Menginstansiasi `NoteRepository()` langsung di baris 9, mencampur deklarasi provider dengan widget UI, serta mengimpor `note.dart`, `note_repository.dart`, dan `sync.dart` langsung dari layer `data`. |
-| `lib/pages/settings_page.dart` | `presentation` (+ state & DI) | Menginstansiasi `PrefsRepository()` langsung di baris 5, menyatukan `DarkModeNotifier` di dalam file halaman UI, dan menampilkan waktu `lastOpened` dalam format string ISO mentah. |
-| `lib/pages/note_detail_page.dart` | `presentation` | Mengimpor model dan repository langsung dari layer `data` tanpa melewati kontrak layer `domain`. |
-| `lib/widgets/note_tile.dart` | `presentation` | Mengimpor class `Note` langsung dari `data/local/note.dart` (melanggar *dependency rule*: `presentation` bergantung ke `data`). |
-| `lib/data/local/db.dart` | `data` | OK bila hanya dipakai oleh implementasi repository (`openNotesDb`), bukan dipanggil langsung oleh widget. |
-| `lib/data/local/note.dart` | `data` (+ entity tercampur) | Objek bisnis murni (*Entity*) masih tercampur dengan fungsi serialisasi SQLite (`toMap` dan `fromMap`) dalam satu class. |
-| `lib/data/repositories/note_repository.dart` | `data` (+ kontrak tercampur) | Kontrak (*interface*) dan implementasi SQLite (`sqflite`) masih berada di satu class konkret, serta belum membungkus exception ke dalam `Failure`. |
-| `lib/data/prefs.dart` | `data` (+ kontrak tercampur) | Kontrak dan implementasi `SharedPreferences` masih menyatu dalam satu class konkret (`PrefsRepository`). |
-| `lib/data/sync.dart` | `data` (+ logika bisnis) | Operasi bisnis sinkronisasi (`syncNotes`) berada di layer `data` dan memanggil class repository konkret alih-alih menjadi *Use Case* di layer `domain`. |
-
-### Hasil Pencarian Tiga Pelanggaran Klasik (Sebelum Refactor)
-1. **Widget menyentuh jaringan / database langsung (`lib/pages`, `lib/widgets`):**
-   * Hasil: `0 temuan` (Akses `sqflite` dan `SharedPreferences` sudah berada di dalam class repository).
-2. **Logika bisnis / formatting di dalam `build()` (`lib/pages`, `lib/widgets`):**
-   * Hasil: `0 temuan` eksplisit, namun string ISO-8601 dari `getLastOpened()` ditampilkan mentah di `settings_page.dart`.
-3. **Instansiasi manual / Dependency Injection bocor (`lib/pages`, `lib/widgets`):**
-   * Hasil: **2 temuan** (Deklarasi Provider yang langsung menginstansiasi repo secara manual `new Repository()` di file UI).
+Repository ini mendokumentasikan implementasi fitur pencarian catatan (*Offline Notes*) dengan alur kerja **AI-Assisted Development** (Prompt -> Generate -> Verify -> Test -> Refactor -> Explain). Pengembangan ini melanjutkan arsitektur *Clean Architecture* dari Minggu 7 dengan fokus pada penambahan fitur berbasis AI tanpa merusak integritas batas antar-lapis (*layer boundary*).
 
 ---
 
-## 2. Struktur Baru: Feature-First Clean Architecture
+## 1. Deskripsi Fitur & Arsitektur
 
-Setelah di-refactor, proyek ini menggunakan arsitektur *feature-first* di mana aturan *Dependency Rule* dipatuhi dengan ketat (dependensi hanya mengarah ke dalam layer `domain`).
+Fitur yang ditambahkan meliputi sistem pencarian judul catatan secara real-time disertai umpan balik visual saat data kosong:
+* **Pencarian Real-Time & Kebal Format (Case-Insensitive):** Memfilter catatan secara instan saat pengguna mengetik, mengabaikan perbedaan huruf kapital/kecil serta spasi berlebih (`.trim().toLowerCase()`).
+* **Dual Empty State Handling:**
+  1. Kondisi data kosong (`query` kosong dan database kosong): Menampilkan teks `"Belum ada catatan."`.
+  2. Kondisi pencarian nihil (`query` terisi namun tidak ada judul yang cocok): Menampilkan teks `"Catatan tidak ditemukan"`.
+* **Prinsip Arsitektur (Clean Architecture):** Logika filter diisolasi murni ke dalam layer **Domain** (`filter_notes.dart`) tanpa mengimpor framework Flutter atau SQLite, sedangkan *state reactive* dikelola di layer **Presentation** menggunakan Riverpod.
+
+---
+
+## 2. Prompt Inti (Formula 5-Slot)
+
+Sesuai panduan Praktikum 1, instruksi yang diberikan kepada GitHub Copilot disusun menggunakan formula 5 slot yang terstruktur, bebas dari data rahasia (*zero secrets*), dan memiliki batasan yang tegas:
 
 ```text
-lib/
-├── core/
-│   ├── failures.dart                        # Class pembungkus error (murni Dart)
-│   └── format.dart                          # Fungsi pemformatan string tanggal
-├── features/
-│   └── notes/
-│       ├── domain/
-│       │   ├── entities/note.dart           # Objek bisnis murni
-│       │   ├── repositories/note_repository.dart  # Interface kontrak (abstraksi)
-│       │   └── usecases/                    # Logika bisnis
-│       │       ├── add_note.dart
-│       │       ├── get_notes.dart
-│       │       └── sync_notes.dart
-│       ├── data/
-│       │   ├── models/note_model.dart       # Mapping JSON/SQLite (toMap, fromMap)
-│       │   └── repositories/note_repository_impl.dart # Implementasi eksekusi SQLite
-│       └── presentation/
-│           ├── providers/notes_providers.dart # Riverpod DI & State
-│           └── pages/notes_page.dart        # UI Bersih tanpa import layer Data
-└── main.dart
+Peran: Senior Flutter Developer
+Konteks:
+- Struktur Feature-First Clean Architecture (presentation -> domain <- data)
+- State management: flutter_riverpod, Storage: sqflite
+- Entity: Note({id, title, body, updatedAt, dirty}) di lib/features/notes/domain/entities/note.dart
+Tugas: Tambah fitur search/filter catatan berdasarkan judul (title) + tampilan empty state saat hasil pencarian kosong ("Catatan tidak ditemukan").
+Batas:
+- Jangan ubah arsitektur layer yang sudah ada
+- Jangan panggil SQLite dari widget
+- Maksimal 80 baris perubahan kode
+Output: Kode implementasi + 3 test case (unit/widget test) + langkah cara uji manual
 ```
 
 ---
 
-## 3. Bukti Behavior Identik (Before vs After Refactor)
+## 3. Tech Stack
 
-Berikut adalah perbandingan tampilan aplikasi sebelum di-refactor (Minggu 5) dan sesudah di-refactor menggunakan Clean Architecture (Minggu 7). Tampilan dan fungsionalitas tetap **100% identik**.
-
-| Fitur / State | Sebelum Refactor (Minggu 5) | Sesudah Refactor (Minggu 7) |
-| :--- | :--- | :--- |
-| **Empty State**<br>*(Awal dibuka, belum ada data)* | <img src="screenshots/01_empty_state.png" width="250"/> | <img src="screenshots/after_01_empty_state.png" width="250"/> |
-| **Data Kotor (Belum Sync)**<br>*(Tambah catatan offline)* | <img src="screenshots/02_dirty_badge_before_sync.png" width="250"/> | <img src="screenshots/after_02_dirty_before_sync.png" width="250"/> |
-| **Data Bersih (Sesudah Sync)**<br>*(Tombol sync ditekan)* | <img src="screenshots/03_dirty_badge_after_sync.png" width="250"/> | <img src="screenshots/after_03_dirty_after_sync.png" width="250"/> |
-| **Dark Mode**<br>*(Mengubah tema di pengaturan)* | <img src="screenshots/04_dark_mode.png" width="250"/> | <img src="screenshots/after_04_dark_mode.png" width="250"/> |
+* **Framework:** Flutter SDK (Channel stable) & Dart 3.x
+* **Arsitektur:** Feature-First Clean Architecture (`domain`, `data`, `presentation`)
+* **State Management & DI:** `flutter_riverpod` (`NotifierProvider`, `FutureProvider`)
+* **Penyimpanan Lokal:** `sqflite` (SQLite database) & `shared_preferences`
+* **Asisten AI:** GitHub Copilot
 
 ---
 
-## 4. Verifikasi Clean Architecture & Unit Testing
+## 4. Panduan Menjalankan Aplikasi & Pengujian
 
-Seluruh file telah diverifikasi menggunakan:
-1. `grep` / `Select-String`: Layer `presentation` bersih dari `sqflite`/`Dio` dan layer `domain` bersih dari impor framework Flutter/infrastruktur.
-2. `flutter analyze`: **No issues found!**
-3. `flutter test`: Pengujian unit untuk layer `domain` menggunakan `FakeNoteRepository` berhasil memverifikasi alur *Use Case* tanpa memerlukan SQLite sungguhan.
+### A. Menjalankan Aplikasi di Perangkat / Emulator
+```powershell
+flutter pub get
+flutter run
+```
 
-![Bukti Testing](screenshots/terminal_test_passed.png)
+### B. Uji Integritas Batas Layer (Sterilitas Domain)
+Pastikan layer domain tidak terkontaminasi dependensi UI atau database:
+```powershell
+Select-String -Path "lib\features\notes\domain\**\*.dart" -Pattern "package:flutter|package:sqflite|package:dio"
+```
+*(Hasil: 0 temuan / Steril)*
+
+### C. Analisis Statis & Linter
+```powershell
+dart format --set-exit-if-changed lib test
+flutter analyze
+```
+
+### D. Eksekusi Unit Test & Widget Test
+```powershell
+flutter test test/search_filter_test.dart
+```
 
 ---
 
-## 5. Refleksi
+## 5. Hasil Pengujian & Bukti Eksekusi
 
-* **Mengapa interface repository harus tinggal di domain, bukan di data? Apa yang rusak bila dibalik?**
-  Prinsip *Dependency Inversion*. Layer `domain` berisi logika inti aplikasi yang tidak boleh bergantung pada teknologi spesifik (SQLite/API). Dengan meletakkan *interface* di `domain`, *Use Case* dapat bekerja menggunakan "kontrak" tanpa memedulikan implementasinya. Jika dibalik, `domain` akan bergantung pada `data`, sehingga unit test menjadi sulit dilakukan tanpa database sungguhan, dan mengganti basis data di masa depan akan merusak logika bisnis.
+### A. Hasil Terminal
+* **`flutter analyze`:**
+  ```text
+  Analyzing 09-week-9-ai-assisted-development...
+  No issues found! (ran in 8.2s)
+  ```
+* **`flutter test test/search_filter_test.dart`:**
+  ```text
+  00:25 +4: All tests passed!
+  ```
+  Rincian skenario pengujian yang lolos:
+  1. `Unit Test: Query cocok mengembalikan catatan yang sesuai` (PASSED)
+  2. `Unit Test: Query tidak cocok mengembalikan list kosong` (PASSED)
+  3. `Unit Test: Query spasi kosong mengembalikan semua catatan` (PASSED)
+  4. `Widget Test: Tampilkan empty state saat pencarian tidak cocok` (PASSED)
 
-* **Kapan use case benar-benar dibutuhkan, dan kapan repository langsung ke notifier sudah cukup?**
-  *Use Case* dibutuhkan ketika ada logika bisnis tambahan, seperti validasi input (`AddNote`), atau saat operasi memerlukan koordinasi beberapa fungsi sekaligus (`SyncNotes` yang harus mengecek jumlah kotor, melakukan penundaan simulasi, dan menandai bersih secara berurutan). Untuk operasi CRUD pasif 1-baris (misal: mengambil daftar catatan tanpa modifikasi), memanggil repository langsung dari *notifier* sudah cukup.
+### B. Bukti Tangkapan Layar (Folder `screenshots/`)
+1. `screenshots/01_empty_query.png` : Tampilan awal seluruh catatan dengan kolom pencarian kosong.
+2. `screenshots/02_search_match.png` : Tampilan saat kata kunci cocok dimasukkan dan menyaring item yang sesuai.
+3. `screenshots/03_search_empty_state.png` : Tampilan pesan `"Catatan tidak ditemukan"` ketika kata kunci acak dimasukkan.
 
-* **Apa biaya over-engineering (use case per CRUD satu-baris) bagi tim kecil? Kapan biayanya sepadan?**
-  Bagi tim kecil, membuat Use Case terpisah untuk operasi ambil data sederhana (CRUD 1-baris) adalah *over-engineering* yang menghasilkan banyak file *boilerplate*. Ini memperlambat pengiriman fitur (delivery). Biaya ini baru menjadi sepadan pada aplikasi skala *Enterprise* yang besar di mana aturan bisnis sering berubah dan sangat kompleks, sehingga isolasi ketat antar-lapis mutlak diperlukan.
+---
 
-* **Bagian mana dari usulan AI yang Anda tolak atau sederhanakan, dan mengapa?**
-  (Telah didokumentasikan di `docs/ai_challenge.md`). Saya **menyederhanakan/menolak** saran pembuatan *Use Case* secara membabi-buta untuk setiap aksi CRUD. Saya memilih pendekatan hibrida: menggunakan *Use Case* hanya untuk operasi `SyncNotes` dan `AddNote` (karena ada validasi), tetapi mengizinkan state *notifier* membaca langsung antarmuka repository untuk pengambilan data dasar demi menghindari kerumitan file yang tidak berguna.
+## 6. AI Challenge: Tabel Keputusan Usulan AI
+
+Berikut adalah evaluasi terhadap kode usulan GitHub Copilot pada branch `feat/notes-title-search`:
+
+| Usulan Kode AI (GitHub Copilot) | Level Temuan | Alasan Teknis | Keputusan Pengembang | Bukti Verifikasi |
+| :--- | :--- | :--- | :--- | :--- |
+| **Menambahkan `// ignore_for_file: deprecated_member_use`** di baris pertama `notes_page.dart` | *Halusinasi Linter / Bad Practice* | AI secara otomatis membungkam peringatan linter padahal tidak ada kode usang yang dipanggil. | **Tolak** *(Dihapus total)* | `flutter analyze` tetap lolos 0 issue tanpa memerlukan anotasi tersebut. |
+| **Menaruh logika filter `filterNotesByTitle` di file UI (`notes_page.dart`)** | *Pelanggaran Arsitektur (Blocker)* | Melanggar *Dependency Rule*. Logika penyaringan catatan adalah aturan bisnis (*business rule*) yang wajib berada di layer domain agar dapat diuji tanpa memuat komponen UI Flutter. | **Refactor** *(Dipindahkan ke `domain/usecases/filter_notes.dart`)* | Pengecekan import UI di layer domain menghasilkan 0 temuan via `Select-String`, unit test domain lulus 100%. |
+| **Mendeklarasikan `searchQueryProvider` di dalam file UI `notes_page.dart`** | *Code Smell (DI Leak)* | Mencampur deklarasi state management dengan widget rendering, mengulang masalah lama pada Week 5. | **Refactor** *(Dipindahkan ke `presentation/providers/notes_providers.dart`)* | File UI `notes_page.dart` fokus murni pada rendering tampilan antarmuka. |
+| **Normalisasi query dengan `.trim().toLowerCase()`** | *Fitur Benar* | Mencegah bug sensitivitas huruf kapital dan spasi berlebih saat pengguna mengetik input. | **Terima** | Lolos pengujian unit test case 1 (`pcvk` berhasil mencocokkan `Tugas PCVK`) dan case 3. |
+
+---
+
+## 7. Refleksi Kritis
+
+1. **Bagaimana pengalaman menerapkan workflow AI (Prompt -> Generate -> Verify -> Test -> Refactor -> Explain)?**  
+   Penggunaan AI secara signifikan memangkas waktu pembuatan boilerplate kode dan penyusunan draf awal. Namun, AI cenderung memilih solusi termudah yang mengabaikan batasan arsitektur (seperti menaruh semua fungsi dalam satu file UI agar kode langsung berjalan). Melalui alur verifikasi dan pengujian bertahap, kita dapat menyaring output AI sehingga kode akhir tetap sesuai standar arsitektur industri.
+
+2. **Pola halusinasi atau kebiasaan buruk apa yang ditemukan pada AI?**  
+   AI memiliki kebiasaan menyembunyikan potensi error alih-alih menyelesaikannya secara benar, seperti menyisipkan supresi linter palsu (`ignore_for_file`). Selain itu, AI kerap mencampuradukkan layer jika tidak diawasi secara ketat oleh pengembang.
+
+3. **Mengapa verifikasi via unit test dan analyze jauh lebih penting daripada sekadar aplikasi berjalan di layar?**  
+   Tampilan aplikasi yang berjalan normal di emulator dapat menyembunyikan kecacatan logika (seperti pencarian case-sensitive) atau pelanggaran struktur layer yang menurunkan *maintainability*. Pengujian otomatis melalui `flutter analyze` dan `flutter test` adalah bukti objektif dan terukur bahwa aplikasi benar secara fungsional maupun struktural.
